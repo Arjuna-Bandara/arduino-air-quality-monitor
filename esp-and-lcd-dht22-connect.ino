@@ -1,6 +1,9 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include "DHT.h"
+#include "MQ7.h"
+
+MQ7 mq7(A0,5.0);
 
 #include <SoftwareSerial.h>
 #define RX 10
@@ -21,6 +24,8 @@ boolean found = false;
 int valSensor = 1;
 
 String sensorDataString = "";
+
+String COvalue = "";
 
 //dht sensor
 DHT dht(DHTPIN, DHTTYPE);
@@ -43,6 +48,13 @@ void setup()
   sendCommand("AT+CWMODE=1",5,"OK");
   sendCommand("AT+CWJAP=\""+ AP +"\",\""+ PASS +"\"",20,"OK");  
 
+}
+
+void mq7read(){
+//    Serial.println("CO value");
+//    Serial.println(mq7.getPPM());
+  COvalue = (String)mq7.getPPM();
+  delay(2000);    
 }
 
 void dhtSetup(){
@@ -72,8 +84,8 @@ void dhtRead(){
   Serial.print(f);
   Serial.print(" *F\t");
 
-  displayText("RH :" + (String)h + " %", "Temp : " + (String)t + " C",true);
-  sensorDataString = getSensorData((String)h,(String)t,"10");
+  displayText("RH:" + (String)h + "%" + ",T:" + (String)t + " C", "CO:"+ COvalue+" ppm",true);
+  sensorDataString = getSensorData((String)h,(String)t,COvalue);
 
   Serial.print(sensorDataString);
   
@@ -105,7 +117,10 @@ void loop()
 {
 
  syncSensorData();
+ 
+ mq7read();
  dhtRead();
+ 
  //delay(15000);
 }
 
